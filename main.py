@@ -46,7 +46,7 @@ def show_course():
 
 
 def register_course(course_id, student_id):
-    cursor.execute("INSERT INTO students_courses (student_id, course_id) VALUES (?,?)", (course_id, student_id))
+    cursor.execute("INSERT INTO students_courses (student_id, course_id) VALUES (?,?)", (student_id, course_id))
     conn.commit()
 
 def students_in_course(course_id):
