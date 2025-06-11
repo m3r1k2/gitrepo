@@ -3,24 +3,28 @@ conn = sqlite3.connect("students.db")
 cursor = conn.cursor()
 
 cursor.execute('''
-    CREATE TABLE students(
+    CREATE TABLE IF NOT EXISTS students(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(20),
         age INTEGER,
         major VARCHAR(100)
         )
-    CREATE TABLE courses(
+''')
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS courses(
         course_id INTEGER PRIMARY KEY AUTOINCREMENT,
         course_name VARCHAR(40),
         instructor VARCHAR(25)
         )
 ''')
 cursor.execute('''
-    CREATE TABLE students_courses
-    student_id INTEGER PRIMARY KEY,
-    course_id INTEGER PRIMARY KEY,
-    FOREIGN KEY (student_id) REFERENCES students(id)
+    CREATE TABLE IF NOT EXISTS students_courses(
+    student_id INTEGER ,
+    course_id INTEGER ,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES students(id),
     FOREIGN KEY (course_id) REFERENCES courses(id) 
+    )
 ''')
 
 def add_student(name, age, major):
@@ -42,19 +46,19 @@ def show_course():
 
 
 def register_course(course_id, student_id):
-    cursor.execute("INSERT INTO student_courses (course_id, student_id) values(?,?)", course_id,student_id)
+    cursor.execute("INSERT INTO students_courses (student_id, course_id) VALUES (?,?)", (course_id, student_id))
     conn.commit()
 
-def sdutents_in_course(course_id):
-    cursor.execute("SELECT students.id, students.name FROM students JOIN student_courses"
-                   "ON students.id = student_courses.student_id WHERE students_course.course.id = ? ", (course_id))
+def students_in_course(course_id):
+    cursor.execute("SELECT students.id, students.name FROM students JOIN students_courses"
+                   "ON students.id = students_courses.student_id WHERE students_courses.course.id = ? ", (course_id))
     res = cursor.fetchall()
     for r in res :
         print(f"ID:{r[0]}, Name{r[1]}")
 
 
 while True:
-    print("/n1. Додати нового студента")
+    print("\n1. Додати нового студента")
     print("2. Додати новий курс ")
     print("3. Показати список студентів")
     print("4. Показати список курсів")
@@ -64,10 +68,15 @@ while True:
 
     choose = int(input("Вибери дію від 1 до 7"))
     if choose == 1:
-        add_student()
+        name = input("Ім'я студента:")
+        age = int(input("Вік:"))
+        faculty = input("Факультет:")
+        add_student(name, age, faculty)
 
     elif choose == 2:
-        add_course()
+        name = input("Назва курсу: ")
+        instructor = input("Викладач: ")
+        add_course(name, instructor)
 
     elif choose == 3:
         show_students()
@@ -76,10 +85,14 @@ while True:
         show_course()
 
     elif choose == 5:
-        register_course()
+        student_id = int(input("ID студента: "))
+        course_id = int(input("ID курсу: "))
+        register_course(student_id, course_id)
 
     elif choose == 6:
-        sdutents_in_course()
+        course_id = int(input("ID курсу: "))
+        students_in_course(course_id)
 
     elif choose == 7:
         break
+        conn.close()
